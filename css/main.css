@@ -1,0 +1,77 @@
+body {
+    font-family: "Lato", sans-serif;
+    background: #eee;
+    padding-top: 10px;
+}
+
+a, button {
+    transition: all 0.25s ease-out;
+}
+a:focus, button:focus {
+    outline: none;
+}
+a:hover, button:hover {
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.btn:hover {
+    text-decoration: none;
+}
+
+.dropdown-menu {
+    margin-top: 3px;
+}
+
+.dropdown-menu:before {
+    position: absolute;
+    top: -7px;
+    right: 7px;
+    display: inline-block;
+    border-right: 7px solid transparent;
+    border-bottom: 7px solid #ccc;
+    border-left: 7px solid transparent;
+    border-bottom-color: rgba(0, 0, 0, 0.2);
+    content: "";
+}
+
+.dropdown-menu:after {
+    position: absolute;
+    top: -6px;
+    right: 8px;
+    display: inline-block;
+    border-right: 6px solid transparent;
+    border-bottom: 6px solid #ffffff;
+    border-left: 6px solid transparent;
+    content: "";
+}
+
+.panel-heading .navbar-right {
+    margin-top: -7px;
+    position: relative;
+    right: -10px;
+}
+.panel-heading .navbar-right i {
+    transition: color 0.25s ease-out;
+    color: #555;
+}
+.panel-heading .navbar-right i:hover {
+    color: #333;
+}
+
+.panel-footer .pager {
+    margin: 0;
+}
+
+.panel .list-group i {
+    float: right;
+}
+
+.panel-body img {
+    width: 100%;
+    max-width: 100%;
+}
+.panel-body p {
+    margin: 0;
+    margin-top: 5px;
+}
