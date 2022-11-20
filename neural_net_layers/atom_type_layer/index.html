@@ -21,6 +21,18 @@
 
 <script>
 
+    var colour_mapping = {
+        'H': '#2AA8F2',
+        'C': '#cc2b5e',
+        'L': '#FBA949',
+        'O': '#42275a',
+        'F': '#de6262 ',
+        'S': '#06beb6',
+        'N': '#eb3349',
+        'P': '#5b86e5',
+        'B': '#b06ab3',
+    };
+
     var diameter = 2060,
         radius = diameter / 2,
         innerRadius = radius - 120;
@@ -42,7 +54,7 @@
     var link = svg.append("g").selectAll(".link"),
         node = svg.append("g").selectAll(".node");
 
-    d3.json("atom_type_group.json", function(error, classes) {
+    d3.json("atom_type_group_new.json", function(error, classes) {
         if (error) throw error;
 
         var root = packageHierarchy(classes)
@@ -68,6 +80,7 @@
     });
 
     // Lazily construct the package hierarchy from class names.
+
     function packageHierarchy(classes) {
         var map = {};
 
@@ -79,6 +92,7 @@
                     node.parent = find(name.substring(0, i = name.lastIndexOf(".")));
                     node.parent.children.push(node);
                     node.key = name.substring(i + 1);
+                    node.colour = colour_mapping[node.key[0]]
                 }
             }
             return node;
@@ -92,6 +106,7 @@
     }
 
     // Return a list of imports for the given array of nodes.
+
     function packageImports(nodes) {
         var map = {},
             imports = [];

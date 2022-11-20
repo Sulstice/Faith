@@ -15,38 +15,16 @@ user = Query()
 
 if __name__ == '__main__':
 
-    database_path = '../../tinydbs'
-    _, _, tinydb_paths = next(os.walk('../../tinydbs/'))
+    db = '/Users/sulimansharif/mackerell_group/faith/neural_net_layers/atom_type_layer/cgenff.json'
+    db = TinyDB(db)
 
-    tinydbs = []
-
-    for i in tinydb_paths[0:8]:
-
-        db = TinyDB(os.path.join(database_path, i))
-        compounds = db.search(user.smiles.exists())
-
-        tinydbs.append(compounds)
-
-        print ("Loaded: %s" % i)
-
-    compounds = sum(tinydbs, [])
     validated_smarts = []
-
+    compounds = db.search(user.smiles.exists())
 
     for compound in compounds:
 
-        if 'atom_penalties' in compound:
-            atoms = compound['atom_penalties']
-        else:
-            atoms = compound['charge_atom_penalties']
-
-        atom_types = []
-
-        for i in atoms:
-            atom_types.append(i[0])
-
+        atom_types = [row.split()[2] for row in compound['atom_rows'] ]
         compound['atom_types'] = atom_types
-
 
     submatches = {}
 
@@ -105,5 +83,5 @@ if __name__ == '__main__':
 
         visualization_network.append(row)
 
-    with open('atom_type_group.json', 'w') as outfile:
+    with open('atom_type_group_new.json', 'w') as outfile:
         json.dump(visualization_network, outfile)
