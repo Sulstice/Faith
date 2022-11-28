@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<style>
+
+    .node {
+        font: 4px sans-serif;
+    }
+
+    .link {
+        stroke: lightgrey;
+        stroke-opacity: 0.5;
+        fill: none;
+        pointer-events: none;
+    }
+
+</style>
+<body>
+
+<div id="chartID"></div>
+
+<script src="https://d3js.org/d3.v4.min.js"></script>
+
+<script>
+
+    var colour_mapping = {
+
+        'hydrogen carbon': '#e81cff',
+        'hydrogen oxygen': '#40c9ff',
+        'hydrogen nitrogen': '#4361ee',
+        'hydrogen sulphur': '#4895ef',
+        'hydrogen phosphate': '#4895ef',
+        'carbon oxygen': '#4895ef',
+        'carbon nitrogen': '#3f37c9',
+        'carbon sulphur': '#4cc9f0',
+        'oxygen nitrogen': '#4361ee',
+        'oxygen sulphur': '#3a0ca3',
+    }
+
+    var diameter = 3060,
+        radius = diameter / 2,
+        innerRadius = radius - 400;
+
+    var cluster = d3.cluster()
+        .size([360, innerRadius]);
+
+    var line = d3.radialLine()
+        .curve(d3.curveBundle.beta(1.85))
+        .radius(function(d) { return d.y; })
+        .angle(function(d) { return d.x / 180 * Math.PI; });
+
+    var svg = d3.select("#chartID").append("svg")
+        .attr("width", diameter)
+        .attr("height", diameter)
+        .append("g")
+        .attr("transform", "translate(" + radius + "," + radius + ")");
+
+    var link = svg.append("g").selectAll(".link"),
+        node = svg.append("g").selectAll(".node");
+
+    d3.json("atom_type_group_new.json", function(error, classes) {
+        if (error) throw error;
+
+        var root = packageHierarchy(classes)
+            .sum(function(d) { return d.size; });
+
+        cluster(root);
+
+        link = link
+            .data(packageImports(root.leaves()))
+            .enter().append("path")
+            .each(function(d) { d.source = d[0], d.target = d[d.length - 1] })
+            .attr('style', function(d) {
+
+                var connection = d.source.data.name + ' ' + d.target.data.name;
+                for (const [key, value] of Object.entries(colour_mapping)) {
+                       if (connection.includes(key.split(" ")[0])) {
+                           if (connection.includes(key.split(" ")[1])) {
+                               return  'stroke: ' + colour_mapping[key] + ' !important;' }
+                           }}
+                       })
+            .attr("class", "link")
+            .attr("d", line);
+
+        node = node
+            .data(root.leaves())
+            .enter().append("text")
+            .attr("class", "node")
+            .attr("dy", "0.31em")
+            .attr("transform", function(d) { return "rotate(" + (d.x - 90) + ")translate(" + (d.y + 8) + ",0)" + (d.x < 180 ? "" : "rotate(180)"); })
+            .attr("text-anchor", function(d) { return d.x < 180 ? "start" : "end"; })
+            .text(function(d) { return d.data.key; })
+            .attr('style', 'font-size: 20px;' )
+
+    });
+
+    // Lazily construct the package hierarchy from class names.
+
+    function packageHierarchy(classes) {
+        var map = {};
+
+        function find(name, data) {
+            var node = map[name], i;
+            if (!node) {
+                node = map[name] = data || {name: name, children: []};
+                if (name.length) {
+                    node.parent = find(name.substring(0, i = name.lastIndexOf(".")));
+                    node.parent.children.push(node);
+                    node.key = name.substring(i + 1);
+                }
+            }
+            return node;
+        }
+
+        classes.forEach(function(d) {
+            find(d.name, d);
+        });
+
+        return d3.hierarchy(map[""]);
+    }
+
+    // Return a list of imports for the given array of nodes.
+
+    function packageImports(nodes) {
+        var map = {},
+            imports = [];
+
+        // Compute a map from name to node.
+        nodes.forEach(function(d) {
+            map[d.data.name] = d;
+        });
+
+        // For each import, construct a link from the source to target node.
+        nodes.forEach(function(d) {
+            if (d.data.imports) d.data.imports.forEach(function(i) {
+                imports.push(map[d.data.name].path(map[i]));
+            });
+        });
+
+        return imports;
+    }
+
+    var w = 500,
+        h = 500;
+    var canvas1 = document.createElement('canvas');
+    canvas1.id = "canvas1";
+    canvas1.width = w * 500;
+    canvas1.height = h * 500;
+    document.getElementById('pngcon').appendChild(canvas1);
+
+    var html = new XMLSerializer().serializeToString(document.getElementById('chartID').querySelector('svg'));
+
+    console.log(document.getElementById('chartID').querySelector('svg'));
+
+    var imgsrc = 'data:image/svg+xml;base64,' + btoa(html);
+
+    console.log(imgsrc);
+
+    var canvas = document.getElementById("canvas1");
+    var context = canvas.getContext("2d");
+    var canvasdata;
+    var image = new Image;
+    image.src = imgsrc;
+    image.onload = function() {
+        context.drawImage(image, 0, 0, canvas.width, canvas.height);
+
+        canvasdata = canvas.toDataURL("image/png");
+
+        var a = document.createElement("a");
+        a.id = "imagepng";
+        a.innerHTML = "output file, right click - save as since click() won't work in snippet";
+        a.download = "output.png";
+        a.href = canvasdata;
+        document.body.insertBefore(a, document.getElementById('chartID'));
+    }
+
+</script>
+
+</body>
